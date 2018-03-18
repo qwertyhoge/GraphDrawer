@@ -8,11 +8,23 @@
     <script src="graph_drawer.js"></script>
 </head>
 <body onload="onLoad()">
-    <p>Test paragraph</p>
     
-    <div class="node" id="testNode">
-        <p>test node</p>
-    </div>
+    <main id="nodeArea">
+        <div class="node" id="testNode">
+            <p>test node</p>
+        </div>
+    </main>
+    <aside id="information">
+        <form name="nodeGenerator">
+            名前：<input type="text" name="name" value=""><br/>
+            説明：<input type="text" name="description" value=""><br/>
+            <input type="button" value="Generate" onclick="generateNewNode()"><br/>
+        </form>
+        
+        <section id="nodeInformation">
+            <p>test info</p>
+        </section>
+    </aside>
     
 </body>
 </html>

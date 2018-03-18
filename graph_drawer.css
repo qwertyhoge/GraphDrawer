@@ -1,5 +1,31 @@
+html{
+    height: 100%;
+    overflow: hidden;
+}
+
+body{
+    height: 100%;
+    overflow: hidden;
+}
+
 div.node{
     width: 150px;
     height: 150px;
     background-color: aqua;
+}
+
+main#nodeArea{
+    float: left;
+    width: 70%;
+    background-color: antiquewhite;
+    padding:10px;
+    height:100%;
+    box-sizing: border-box;
+}
+
+aside#information{
+    float: right;
+    width: 30%;
+    padding: 10px;
+    box-sizing: border-box;
 }
