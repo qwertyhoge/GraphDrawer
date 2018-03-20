@@ -9,9 +9,11 @@ body{
 }
 
 div.node{
+    margin:5px;
     width: 150px;
     height: 150px;
     background-color: aqua;
+    border: solid black 1px;
 }
 
 main#nodeArea{
@@ -21,6 +23,7 @@ main#nodeArea{
     padding:10px;
     height:100%;
     box-sizing: border-box;
+    overflow: scroll;
 }
 
 aside#information{

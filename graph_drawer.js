@@ -1,7 +1,7 @@
 class Node{
     constructor(name, description){
-        name == undefined ? this.name = ""; : this.name = name;
-        description == undefined ? this.description = ""; : this.description = description;
+        name == undefined ? this.name = "" : this.name = name;
+        description == undefined ? this.description = "" : this.description = description;
     }
     
     getName(){
@@ -18,20 +18,31 @@ class Node{
     }
     
     // nodeArea内末尾にクラスがnodeのdivを追加する
-    generateTag(){
+    addTag(){
         var newElement = document.createElement("div");
         newElement.classList.add("node");
-        var parent = document.getElementById('nodeArea');
+  //      newElement.addEventListener("mousedown", handleMousedown, false);
+        
+        var parent = document.getElementById("nodeArea");
+        // null指定で末尾になる
         parent.insertBefore(newElement, null);
         
-        newElement.innerHTML += name;
+        newElement.innerHTML += this.name;
     }
     
 }
 
-function generateNewNode() {
+function addNewNode() {
     var form = document.forms.nodeGenerator;
+    var name, description;
+    var node;
     
+    name = form.name.value;
+    description = form.description.value;
+    
+    node = new Node(name, description);
+
+    node.addTag();
 }
 
 var element;
