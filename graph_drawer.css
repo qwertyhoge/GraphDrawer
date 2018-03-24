@@ -24,6 +24,8 @@ main#nodeArea{
     height:100%;
     box-sizing: border-box;
     overflow: scroll;
+    z-index: 1;
+    position: relative;
 }
 
 aside#information{
@@ -31,4 +33,6 @@ aside#information{
     width: 30%;
     padding: 10px;
     box-sizing: border-box;
+    z-index: 2;
+    position: relative;
 }
