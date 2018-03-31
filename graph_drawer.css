@@ -8,31 +8,70 @@ body{
     overflow: hidden;
 }
 
+.clearfix:after{
+    content: ".";
+    clear: both;
+    display: block;
+}
+
+.clearfix{
+    width:100%;
+    height:100%;
+    display: inline-table
+}
+
 div.node{
     margin:5px;
     width: 150px;
     height: 150px;
     background-color: aqua;
     border: solid black 1px;
+    position: absolute;
+    z-index:2;
 }
 
-main#nodeArea{
+div.dragging{
+    border: solid red 3px;
+    z-index: 3;
+}
+
+div.selected{
+    border: solid green 3px;
+}
+
+div.connecting{
+    border: solid blue 4px;
+}
+
+#nodeArea{
     float: left;
     width: 70%;
     background-color: antiquewhite;
     padding:10px;
     height:100%;
     box-sizing: border-box;
-    overflow: scroll;
     z-index: 1;
     position: relative;
+    overflow: hidden;
 }
 
-aside#information{
+#information{
     float: right;
     width: 30%;
     padding: 10px;
     box-sizing: border-box;
     z-index: 2;
     position: relative;
+}
+
+#nodeGenerator{
+    border: double green 3px;
+    padding: 10px;
+    margin: 5px;
+}
+
+#nodeInformation{
+    border: double cyan 3px;
+    padding: 10px;
+    margin: 5px
 }
