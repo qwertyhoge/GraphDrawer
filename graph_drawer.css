@@ -43,6 +43,36 @@ div.connecting{
     border: solid blue 4px;
 }
 
+div.connectingTo{
+    border: double blue 4px;
+}
+
+/* ノードサイズ・矢印の先端のborderサイズを変更した場合はjsのputarrow()内の定数を変更しなければならない */
+.connectArrow{
+    /* 距離差はsqrt(top差^2+left差^2)で取れて、対象ノード(ryは(ノードの一辺)/2cosθ */
+    /* width:距離差-(対象ノードの辺と矢印の交点と対象ノードの中心までの距離)-先端のborderサイズ */
+    position: absolute;
+    background-color: aqua;
+    height: 5px; /* 矢印の線の幅 */
+    /* top,left は対象の開始点+(ノードサイズ/2)で中央から生やす */
+    transform-origin: 7px 50%; /* 端点を中心に回転させる */
+  /*  transform: rotateZ(45deg); */ /* jsでstyle.transform = rotateZ(θ) */
+    /* 45degだと右下を向く */
+}
+/* サイズ0でボーダーを4辺にやると正方形を対角線で4つに区切った図形になるのでそれを使う */
+/* connectArrowのdivの入れ子にして使う */
+.connectArrowTip{
+    position: relative;
+    border-color: #d9534f;
+    border-style: solid;
+    border-width: 20px; /* 矢印の先端の幅 */
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-right-color: transparent;
+    /* leftは.connectArrowのwidthと一致 */
+    top: -17px; /* ナオキ  ずれたら調整*/
+}
+
 #nodeArea{
     float: left;
     width: 70%;
