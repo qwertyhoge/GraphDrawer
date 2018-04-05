@@ -5,9 +5,8 @@ class Node{
         name == undefined ? this.name = "" : this.name = name;
         description == undefined ? this.description = "" : this.description = description;
         this.element = null;
-        this.connectionToList = null;
-        this.arrowElem = null;
-        this.arrowNum = null;
+        this.connectionToList = []; //Node List
+        this.arrowElemList = []; // Element List
         
         const self = this;
         this.handleMouseupWrapper = function(event) {
@@ -224,6 +223,7 @@ function selectClear(event){
 
 }
 
+// ノードを削除する関数
 function deleteNode(event){
     var selectedElement = document.getElementsByClassName("selected")[0];
     var selectedIndex = parseNum(selectedElement.id);
@@ -257,6 +257,8 @@ function deleteNode(event){
     updateInformation("-", "-");
 }
 
+// クソみたいな関数名やめてください！
+// 接続用のイベントリスナを追加するハンドラ。
 function prepareConnectNode(event){
     var infoForm = document.forms.nodeInformation;
     var connectorForm = document.forms.nodeConnector;
@@ -281,27 +283,35 @@ function prepareConnectNode(event){
     }
 }
 
-// nodeを宛先にするノードがあればそこの矢印を更新する
+// nodeにかかわる矢印のスタイルを再設定する。(nodeはドラッグしているノード)
 function updateArrows(node){
     var i;
     var targetNode;
     var arrow;
-    
-    // 複数にはまだ対応していない
-    // 矢尻をarrowの子にしているのでこれで取得できる
-    if(node.connectionTo != null){
-        setArrow(node.element, node.connectionTo, node.arrowElem, node.arrowElem.children[0]);
+
+    // 自分の接続先の矢印をすべて更新する
+    if(node.connectionToList != null){
+        node.connectionToList.forEach(function(connectTo, index){
+            // 矢尻をarrowの子にしているのでこれで取得できる
+            setArrow(node.element, connectTo.element, node.arrowElemList[index], node.arrowElemList[index].children[0]);
+        });
     }
     
     // 自分を宛先にしている矢印も更新しないといけない
     // nodeListを全探索して自分を宛先にしているやつを探す
     nodeList.forEach(function(listNode, index){
-        if(listNode.connectionTo === node.element){
-            setArrow(listNode.element, node.element, listNode.arrowElem, listNode.arrowElem.children[0]);
+        if(listNode.connectionToList != null){
+            // nodeが含まれているとindexOfは添え字を返す、なければ-1
+            var index = listNode.connectionToList.indexOf(node);
+            console.log(index);
+            if(index >= 0){
+                setArrow(listNode.element, node.element, listNode.arrowElemList[index], listNode.arrowElemList[index].children[0]);
+            }
         }
     });
 }
 
+// エレメントから位置情報などを取得し、矢印のスタイルを設定する
 function setArrow(connect, connectTo, arrow, arrowTip){
     var distance;
     var angle;
@@ -321,10 +331,8 @@ function setArrow(connect, connectTo, arrow, arrowTip){
     if(Math.abs(angle) >= Math.PI/4　&& Math.abs(angle) <= Math.PI*3/4){
         // どの向きだろうと符号の概念は出てきてほしくないのでabsを取る
         arrow.style.width = (distance - Math.abs(halfNodeSize/Math.sin(angle)) - arrowSize) + "px";
-        console.log("calced by sin" + "sin(angle):" + Math.sin(angle));
     }else{
         arrow.style.width = (distance - Math.abs(halfNodeSize/Math.cos(angle)) - arrowSize) + "px";
-        console.log("calced by cos" + "cos(angle):" + Math.cos(angle));
     }
     
     arrow.style.top = (parseInt(connect.style.top) + halfNodeSize) + "px";
@@ -340,6 +348,7 @@ function setArrow(connect, connectTo, arrow, arrowTip){
     
 }
 
+// 矢印生成
 function putArrow(connect, connectTo){
     var newArrowElem = document.createElement("div");
     var newArrowTipElem = document.createElement("div");
@@ -355,24 +364,25 @@ function putArrow(connect, connectTo){
     parent.insertBefore(newArrowElem, connect.nextElementSibling);
     newArrowElem.insertBefore(newArrowTipElem, null);
     
-    connectNode.arrowElem = newArrowElem;
-    connectNode.arrowNum = arrowCount;
+    connectNode.arrowElemList.push(newArrowElem);
     
     arrowList.push(newArrowElem);
     arrowCount += 1;
 }
 
+// 接続を確定したときのハンドラ
 function connectNode(event){
     var connectingElement = document.getElementsByClassName("connecting")[0];
     var connectingToElement = document.getElementsByClassName("connectingTo")[0];
     var connectingNode = nodeList[parseNum(connectingElement.id)];
 
-    connectingNode.connectionTo = connectingToElement;
+    connectingNode.connectionToList.push(nodeList[parseNum(connectingToElement.id)]);
     putArrow(connectingElement, connectingToElement);
 
     clearConnecting(event);
 }
 
+// 接続先を探すときのハンドラ
 function selectConnectNode(event){
     console.log("selecting connectNode");
     var infoForm = document.forms.nodeInformation;
@@ -393,6 +403,8 @@ function selectConnectNode(event){
     infoForm.delete.disabled = true;
 }
 
+// 接続を探す状態をクリアする関数
+// ハンドラから渡されることがあるので一応eventを引数に取る
 function clearConnecting(event){
     var connectingToElement = document.getElementsByClassName("connectingTo")[0];
     var connectingElement = document.getElementsByClassName("connecting")[0];
