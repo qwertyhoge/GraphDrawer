@@ -4,35 +4,34 @@
 <head>
     <title>Graph Drawer</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="graph_drawer.css">
+    <link rel="stylesheet" type="text/css" href="graph_drawer.css">
     <script src="graph_drawer.js"></script>
 </head>
 <body onload="onLoad()">
-    <div class="clearfix">
-        <main id="nodeArea" onmousedown="selectClear()">
-        </main>
-        <aside id="information">
-            <form name="nodeGenerator" id="nodeGenerator">
-                <span style="color:red">Node Generating Panel</span><br/>
-                名前：<input type="text" name="name" value=""><br/>
-                説明：<input type="text" name="description" value=""><br/>
-                <input type="button" value="Add node" onclick="addNewNode()"><br/>
-            </form>
-
+    <main id="nodeArea" onmousedown="selectClear()">
+        <!--<p>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>a<br>
+        </p>
+        -->
+    </main>
+    <aside id="information">
+        <form name="nodeGenerator" id="nodeGenerator">
+            <span style="color:red">Node Generating Panel</span><br/>
+            名前：<input type="text" name="name" value=""><br/>
+            説明：<input type="text" name="description" value=""><br/>
+            <input type="button" value="Add node" onclick="addNewNode()"><br/>
+        </form>
             <form name="nodeInformation" id="nodeInformation">
-                <span style="color:blue">Node Information</span><br/>
-                名前： <input type="text" name="name" disabled="disabled" value="-"><br/>
-                説明： <input type="text" name="description" disabled="disabled" value="-"><br/>
-                <input type="button" name="edit" value="edit" disabled="disabled">
-                <input type="button" name="delete" value="delete" disabled="disabled">
-            </form>
-            <form name="nodeConnector" id="nodeConnector">
-                <span style="color:green">Node Connection panel</span><br/>
-                <input type="button" name="connect" disabled="disabled" value="connect"><br/>
-                <input type="button" name="cancel" disabled="disabled" value="cancel"><br/>
-            </form>
-        </aside>
-    </div>
-    
+        <span style="color:blue">Node Information</span><br/>
+            名前： <input type="text" name="name" disabled="disabled" value="-"><br/>
+            説明： <input type="text" name="description" disabled="disabled" value="-"><br/>
+            <input type="button" name="edit" value="edit" disabled="disabled">
+            <input type="button" name="delete" value="delete" disabled="disabled">
+        </form>
+    <form name="nodeConnector" id="nodeConnector">
+            <span style="color:green">Node Connection panel</span><br/>
+            <input type="button" name="connect" disabled="disabled" value="connect"><br/>
+            <input type="button" name="cancel" disabled="disabled" value="cancel"><br/>
+        </form>
+    </aside>
 </body>
 </html>

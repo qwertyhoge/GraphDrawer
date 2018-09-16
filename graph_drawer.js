@@ -1,4 +1,4 @@
-// todo: 要素のdivをドラッグして動かせるようにする クリックとドラッグのどちらかを判定する
+// todo: ドラッグ時にノードの位置を固定しない
 // グラフ要素のクラス
 class Node{
     constructor(name, description){
@@ -19,6 +19,7 @@ class Node{
     
     // マウスが離された(ドラッグ終了)ときのハンドラ
     handleMouseup(event){
+        var nodeAreaElem = document.getElementById("nodeArea");
         var editButton = document.forms.nodeInformation.edit;
         var deleteButton = document.forms.nodeInformation.delete;
         var connectButton = document.forms.nodeConnector.connect;
@@ -32,17 +33,21 @@ class Node{
             console.log("detect mouseup");
             updateInformation(this.name, this.description);
         }
-        // 制御用のクラスを外したりイベントリスナーを解除する
+        // 制御用のクラスを外してイベントリスナーを解除する
         this.element.classList.remove("dragging");
         this.element.classList.remove("clicking");
         
-        document.body.removeEventListener("mousemove", this.handleMousemoveWrapper, false);
+        nodeAreaElem.removeEventListener("mousemove", this.handleMousemoveWrapper, false);
         this.element.removeEventListener("mouseup", this.handleMouseupWrapper, false);
     }
     
     
     // マウスがドラッグ中(押されていて動く)のときのハンドラ
     handleMousemove(event){
+        var nodeAreaElem = document.getElementById("nodeArea");
+        var targetRect = event.target.getBoundingClientRect();
+        var draggingElem;
+        
         console.log("detect dragging");
         if(this.element.classList.contains("clicking")){
             this.element.classList.remove("clicking");
@@ -51,8 +56,22 @@ class Node{
         
         event.preventDefault();
         // event.page*はマウスの座標なのでドラッグ中はこれに更新する
+        // どうもposition:absoluteに設定しないとスクロールをガン無視で座標を取ってくるようだ
+        // ~~~としていたが、スクロールに上手く対応できず、色々試すとoffset*が使えるとわかった~~~
+        // ~~~offset*はlayer*のようにマウスのある要素の中での座標を出すので、~~~
+        // ~~~nodeの持つevent.target.offset*を足すことによって座標を正しく計算する。~~~
+        // ~~~なぜかわからないが、offsetは子要素の中でしかスクロールをちゃんと取ってくれない。~~~
+        // ~~~offsetTopとかを使うと結局うまく行きはするので、そっちを使う。~~~
+        // ~~~node以外のところまでドラッグするとtargetが吸われて座標がおかしくなるので限定する~~~
+        // ~~~nodeだけに限定するとすぐマウスからすっぽ抜けるので無理矢理だがnodeAreaも含める~~~
+        // ~~~そうするとすっぽ抜けたときのtargetがすり替わるせいでoffsetがおかしくなるので~~~
+        // ~~~offsetは常にnodeから取ってくることにする~~~
+        // ~~~ドラッグ中のクラスを取ってきてそれを常にいじることにする~~~
+        
         this.element.style.top = (event.pageY - 30) + "px";
         this.element.style.left = (event.pageX - 30) + "px";
+        
+        scrollByNode(this.element);
         
         updateArrows(this);
     }
@@ -61,12 +80,15 @@ class Node{
     // なのだが、addTag()内でNodeを指すように細工した
     // マウスが押されたときのハンドラ
     handleMousedown(event){
-        // bodyでドラッグを検知する分、識別用の何かが必要でクラスだと拡張性が高い(多分)
+        var nodeAreaElem = document.getElementById("nodeArea");
+        
+        // ~~外部(body)でドラッグを検知する分、~~識別用の何かが必要でクラスだと拡張性が高い(多分)
+        // スクロールの関係でbodyではなくnodeAreaでやることにする
         this.element.classList.add("clicking");
         console.log("detect clicking");
         
         // ここでも同様の細工をするのだが、即時関数だとremoveEventListenerができなくなるのでwrapperとして名前を付けて定義しておいたものを使う
-        document.body.addEventListener("mousemove", this.handleMousemoveWrapper, false);
+        nodeAreaElem.addEventListener("mousemove", this.handleMousemoveWrapper, false);
         this.element.addEventListener("mouseup", this.handleMouseupWrapper, false);
     }
 
@@ -77,8 +99,9 @@ class Node{
         this.element.classList.add("node");
         // divにNodeのリストに対応するidを付けて、divから辿れるようにする
         this.element.id = "node" + nodeCount;
-        this.element.style.top = "50px";
-        this.element.style.left = "50px";
+        this.element.style.top = (window.scrollY + 50)  + "px";
+        this.element.style.left = (window.scrollX + 50) + "px";
+        this.element.innerHTML = this.name;
         
         // 即時関数にthisがdivになるのを吸収させて、内部でself(=Node)からhandleMousedownを呼び出すことでhandleMousedown内でのカレントオブジェクトをNodeにする
         this.element.addEventListener("mousedown", function(event){
@@ -100,6 +123,74 @@ function onLoad(){
     infoForm.delete.addEventListener("click", deleteNode, false);
     connectorForm.connect.addEventListener("click", prepareConnectNode, false);
     connectorForm.cancel.addEventListener("click", clearConnecting, false);
+    document.body.addEventListener("mousemove", function(event){
+//        var nodeRect = event.target.getBoundingClientRect();
+//        console.log("event.pageY:" + event.pageY);
+//        console.log("event.pageX:" + event.pageX);
+        /*
+        console.log("event.target.offsetTop:" + event.target.offsetTop);
+        console.log("event.target.offsetLeft:" + event.target.offsetLeft);
+        console.log("event.target.id:" + event.target.id);
+        */
+    }, false); 
+}
+
+// Nodeのドラッグによるスクロールが長くなったのでまとめた
+function scrollByNode(nodeElem){
+    var nodeAreaElem = document.getElementById("nodeArea");
+    var nodeRect = nodeElem.getBoundingClientRect();
+    
+    // nodeが下端に当たっていれば下にスクロールさせていく
+    // console.log("nodeArea.bottom: " + nodeAreaElem.clientHeight);
+    // console.log("targetRect.bottom:" + targetRect.bottom);
+    // なぜ166なのかよくわからない
+    // 拡大寸前のところで勝手にスクロールバーを出さないギリギリの位置
+    // ~~~境界のところだとnodeが若干画面外にはみ出し気味になる現象の解決方法がわからない~~~
+    // もうはみ出してるので仕様でいいんじゃないかな
+    if(nodeRect.top + 166 >= window.innerHeight){
+       //  console.log("bottom range of nodeArea");
+        // なぜ30なのかよくわかっていない
+        window.scrollBy(0, 30);
+        // ここで戻してやらないと過剰にスクロールする
+        nodeElem.style.top = (parseInt(nodeElem.style.top) + 30) + "px";
+        // 多分168は拡大寸前のところで下にスクロールすると白い線が出てこないギリギリの位置で下回るとまずい
+        // これを増やすとスクロールさせるときの増分が増える
+        nodeAreaElem.style.height = (parseInt(nodeElem.style.top) + 178) + "px";
+        // console.log(nodeAreaElem.style.height);
+    }
+    
+    // 上へのスクロール
+    //console.log("nodeRect.top:" + nodeRect.top);
+    if(nodeRect.top <= 20){
+        // console.log("top range of nodeArea");
+        // nodeElem.style.top = (nodeAreaElem.clientHeight - 166) + "px";
+        window.scrollBy(0, -30);
+        // nodeAreaのheightをいじるべきか悩む
+        if(parseInt(nodeElem.style.top) > 30){
+            nodeElem.style.top = (parseInt(nodeElem.style.top) - 30) + "px";
+        }else{
+            nodeElem.style.top = "0px";
+        }
+        
+    }
+    
+    // 右へのスクロール
+    if(nodeRect.left + 166 >= window.innerWidth){
+        window.scrollBy(30, 0);
+        nodeElem.style.left = (parseInt(nodeElem.style.left) + 30) + "px";
+        nodeAreaElem.style.width = (parseInt(nodeElem.style.left) + 178) + "px";
+    }
+    
+    // 左へのスクロール
+    if(nodeRect.left <= 20){
+        window.scrollBy(-30, 0);
+        if(parseInt(nodeElem.style.left) > 30){
+            nodeElem.style.left = (parseInt(nodeElem.style.left) - 30) + "px";
+        }else{
+            nodeElem.style.left = "0px";
+        }
+    }
+    
 }
 
 // 複数ボタンを無効化する場面が多いのでまとめた
@@ -133,11 +224,13 @@ function addNewNode() {
     node.addTag(nodeCount);
     nodeCount++;
     
+    console.log(node.element);
+    
     form.name.value = "";
     form.description.value = "";
 }
 
-// 編集ボタンのリスナ： 編集ハンドラ(こっち)⇔完了ハンドラ
+// 編集ボタンのリスナ： 編集開始ハンドラ(こっち)⇔編集完了ハンドラ
 // 押すとボタンやテキストボックスを編集状態にする。
 // その一環として、このハンドラを一旦解除し、完了ハンドラに切り替える。
 function editNodeInformation(event) {
@@ -165,7 +258,7 @@ function parseNum(id){
 }
 
 
-// 編集ボタンのリスナ： 編集ハンドラ⇔完了ハンドラ(こっち)
+// 編集ボタンのリスナ： 編集開始ハンドラ⇔編集完了ハンドラ(こっち)
 // 押すとノードリストからdivに対応するノードにアクセスし、情報を書き換える。
 // 編集状態の解除はupdateInformation()がやってくれる。
 function applyNodeInformation(event){
@@ -180,6 +273,8 @@ function applyNodeInformation(event){
     
     selectedNode.name = form.name.value;
     selectedNode.description = form.description.value;
+    
+    selectedNode.element.innerHTML = form.name.value;
     
     form.delete.disabled = false;
     connectButton.disabled = true;
@@ -231,17 +326,36 @@ function deleteNode(event){
     var editButton = document.forms.nodeInformation.edit;
     var deleteButton = document.forms.nodeInformation.delete;
     
-    // コネクションを持ったノードがこれを宛先にしていれば削除する
+    // 自分のコネクションも削除する
+    // connectionToListに関してはHTMLに影響を及ぼさないので放置
+    nodeList[selectedIndex].arrowElemList.forEach(function(arrow){
+        var arrowId = parseNum(arrow.id);
+        
+        arrow.parentElement.removeChild(arrow);
+        arrowList.splice(arrowId, 1);
+        arrowCount -= 1;
+        
+        for(var i = arrowId; i < arrowCount; i += 1){
+            arrowList[i].id = "arrow" + i;
+        }
+    });
+    
+    // さらに他のノードがこれを宛先にしていればそのコネクションを削除する
     nodeList.forEach(function(node){
-        if(node.connectionTo === node){
-            for(var i = 0; i < arrowList.length; i += 1){
-                if(node.connectionTo === arrowList[i]){
-                    arrowList.splice(i, 1);
-                }
+        var arrowId;
+        var index = node.connectionToList.indexOf(nodeList[selectedIndex]);
+        if(index >= 0){
+            node.connectionToList.splice(index, 1);
+            
+            arrowId = parseNum(node.arrowElemList[index].id);
+            node.arrowElemList[index].parentElement.removeChild(node.arrowElemList[index]);
+            node.arrowElemList.splice(index, 1);
+            arrowList.splice(arrowId, 1);
+            arrowCount -= 1;
+            
+            for(var i = arrowId; i < arrowCount; i += 1){
                 arrowList[i].id = "arrow" + i;
             }
-            node.connectionTo = null;
-            arrowCount -= 1;
         }
     });
     
@@ -249,9 +363,11 @@ function deleteNode(event){
     nodeList.splice(selectedIndex, 1);
     nodeCount -= 1;
     
+    // idが消えたノードの分落ちてくる
     for(var i = selectedIndex; i < nodeCount; i += 1){
         nodeList[i].element.id = "node" + i;
     }
+    
     
     disableButtons();
     updateInformation("-", "-");
@@ -290,23 +406,18 @@ function updateArrows(node){
     var arrow;
 
     // 自分の接続先の矢印をすべて更新する
-    if(node.connectionToList != null){
-        node.connectionToList.forEach(function(connectTo, index){
-            // 矢尻をarrowの子にしているのでこれで取得できる
-            setArrow(node.element, connectTo.element, node.arrowElemList[index], node.arrowElemList[index].children[0]);
-        });
-    }
+    node.connectionToList.forEach(function(connectTo, index){
+        // 矢尻をarrowの子にしているのでこれで取得できる
+        setArrow(node.element, connectTo.element, node.arrowElemList[index], node.arrowElemList[index].children[0]);
+    });
     
     // 自分を宛先にしている矢印も更新しないといけない
     // nodeListを全探索して自分を宛先にしているやつを探す
-    nodeList.forEach(function(listNode, index){
-        if(listNode.connectionToList != null){
-            // nodeが含まれているとindexOfは添え字を返す、なければ-1
-            var index = listNode.connectionToList.indexOf(node);
-            console.log(index);
-            if(index >= 0){
-                setArrow(listNode.element, node.element, listNode.arrowElemList[index], listNode.arrowElemList[index].children[0]);
-            }
+    nodeList.forEach(function(listNode){
+        // nodeが含まれているとindexOfは添え字を返す、なければ-1
+        var index = listNode.connectionToList.indexOf(node);
+        if(index >= 0){
+            setArrow(listNode.element, node.element, listNode.arrowElemList[index], listNode.arrowElemList[index].children[0]);
         }
     });
 }
@@ -370,7 +481,7 @@ function putArrow(connect, connectTo){
     arrowCount += 1;
 }
 
-// 接続を確定したときのハンドラ
+// 接続を確定したときに呼ばれるハンドラ
 function connectNode(event){
     var connectingElement = document.getElementsByClassName("connecting")[0];
     var connectingToElement = document.getElementsByClassName("connectingTo")[0];
